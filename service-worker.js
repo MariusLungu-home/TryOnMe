@@ -85,9 +85,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // 3. Construct prompt based on mode
                 let promptText = "";
                 if (mode === 'faceSwap') {
-                    promptText = "Perform a face swap. Put the face from the selfie image onto the person in the garment image. Ensure natural blending and realistic proportions.";
+                    promptText = `Use the face from Image A and replace the face in Image B. Preserve all original lighting, shadows, pose, proportions, camera angle, wardrobe, background, and color conditions from Image B. Integrate the face from Image A with accurate skin-tone adaptation and consistent illumination so it appears naturally captured in the original scene. Do not alter any other attributes of Image B.
+
+Assignment of Inputs:
+Image A: the selfie.
+Image B: the model wearing designer clothing.
+
+Optional Precision Additions:
+Match facial geometry to the model’s pose without altering the model’s body.
+Blend edges and textures to remove all artifacts.
+Maintain realism over stylization.`;
                 } else if (mode === 'garmentOverlay') {
-                    promptText = "Overlay the garment from the garment image onto the person in the selfie image. Adjust size and perspective for a realistic fit. Focus on the garment, not the face.";
+                    promptText = `Use the garment from Image B and place it onto the person in Image A. Preserve all original attributes of Image A, including the person's face, hair, body pose, background, and all original lighting, shadows, and color conditions. Integrate the garment from Image B with realistic draping, fit, and perspective, adapting it to the person's body shape and pose. Do not alter any other attributes of Image A.
+
+Assignment of Inputs:
+Image A: the selfie.
+Image B: the model wearing the designer clothing.
+
+Optional Precision Additions:
+Match the garment's shape to the user's pose without altering the user's body.
+Blend edges and textures to remove all artifacts.
+Maintain realism over stylization.`;
                 }
                 
                 const contents = [
