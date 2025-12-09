@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TryOnMe Side Panel</title>
+    <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+    <h1>TryOnMe</h1>
+    <div id="status-messages"></div>
+
+    <section id="selfie-upload">
+        <h2>1. Upload Your Selfie</h2>
+        <input type="file" id="selfieFileInput" accept="image/*">
+        <img id="selfiePreview" src="#" alt="Selfie Preview" style="max-width: 100px; max-height: 100px; display: none;">
+    </section>
+
+    <section id="garment-capture">
+        <h2>2. Capture Garment</h2>
+        <p>Navigate to an e-commerce product page. The extension will try to detect the main garment image.</p>
+        <button id="captureGarmentButton">Capture Garment</button>
+        <img id="garmentPreview" src="#" alt="Garment Preview" style="max-width: 100px; max-height: 100px; display: none;">
+        <p id="garmentURLDisplay"></p>
+    </section>
+
+    <section id="mode-selection">
+        <h2>3. Select Try-On Mode</h2>
+        <label>
+            <input type="radio" name="tryOnMode" value="faceSwap" checked> Face Swap
+        </label>
+        <label>
+            <input type="radio" name="tryOnMode" value="garmentOverlay"> Garment Overlay
+        </label>
+    </section>
+
+    <section id="generate-image">
+        <h2>4. Generate Try-On Image</h2>
+        <button id="generateImageButton">Generate Image</button>
+    </section>
+
+    <section id="result-display">
+        <h2>Result</h2>
+        <div id="loadingIndicator" style="display: none;">
+            <div class="spinner"></div>
+            Processing request...
+        </div>
+        <img id="resultImage" src="#" alt="Try-On Result" style="max-width: 100%; display: none;">
+    </section>
+
+    <script src="sidepanel.js"></script>
+</body>
+</html>

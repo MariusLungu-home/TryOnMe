@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TryOnMe Options</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #0056b3; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"] { width: 400px; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; font-weight: bold; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>TryOnMe Extension Options</h1>
+    <p>Configure your Gemini API Key here.</p>
+
+    <label for="geminiApiKey">Gemini API Key:</label>
+    <input type="text" id="geminiApiKey" placeholder="Enter your Gemini API Key">
+    <button id="saveButton">Save API Key</button>
+    <div id="status"></div>
+
+    <script src="options.js"></script>
+</body>
+</html>
