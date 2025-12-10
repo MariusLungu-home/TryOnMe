@@ -15,9 +15,17 @@
     </section>
 
     <section id="garment-capture">
-        <h2>2. Capture Garment</h2>
-        <p>Navigate to an e-commerce product page. The extension will try to detect the main garment image.</p>
-        <button id="captureGarmentButton">Capture Garment</button>
+        <h2>2. Select Garment</h2>
+
+        <div id="garmentDropZone" class="drop-zone">
+            <p>Drag & drop garment image here</p>
+            <p class="or-text">OR</p>
+            <input type="file" id="garmentFileInput" accept="image/*" style="display: none;">
+            <button id="browseGarmentButton">Browse Files</button>
+            <p class="or-text">OR</p>
+            <button id="captureGarmentButton">Auto-Capture from Page</button>
+        </div>
+
         <img id="garmentPreview" src="#" alt="Garment Preview" style="max-width: 100px; max-height: 100px; display: none;">
         <p id="garmentURLDisplay"></p>
     </section>
@@ -46,6 +54,7 @@
         <img id="resultImage" src="#" alt="Try-On Result" style="max-width: 100%; display: none;">
     </section>
 
+    <script src="browser-polyfill.min.js"></script>
     <script src="sidepanel.js"></script>
 </body>
 </html>

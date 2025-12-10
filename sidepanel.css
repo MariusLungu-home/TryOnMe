@@ -84,3 +84,30 @@ img {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+    margin: 10px 0;
+}
+
+.drop-zone.drag-over {
+    border-color: #4CAF50;
+    background-color: #e8f5e9;
+}
+
+.drop-zone p {
+    margin: 10px 0;
+    color: #666;
+}
+
+.or-text {
+    font-size: 0.9em;
+    color: #999;
+    font-style: italic;
+    margin: 5px 0;
+}

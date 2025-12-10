@@ -5,6 +5,9 @@ let garmentImageUrl = null;
 
 const selfieFileInput = document.getElementById('selfieFileInput');
 const selfiePreview = document.getElementById('selfiePreview');
+const garmentDropZone = document.getElementById('garmentDropZone');
+const garmentFileInput = document.getElementById('garmentFileInput');
+const browseGarmentButton = document.getElementById('browseGarmentButton');
 const captureGarmentButton = document.getElementById('captureGarmentButton');
 const garmentPreview = document.getElementById('garmentPreview');
 const garmentURLDisplay = document.getElementById('garmentURLDisplay');
@@ -47,7 +50,60 @@ selfieFileInput.addEventListener('change', (event) => {
     }
 });
 
-// R2: Garment Acquisition (trigger from sidepanel, actual logic in content-script)
+// R2: Garment Acquisition - Unified handler for file-based garment selection
+function handleGarmentFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        garmentImageUrl = e.target.result; // Store as base64 data URL
+        garmentPreview.src = garmentImageUrl;
+        garmentPreview.style.display = 'block';
+        garmentURLDisplay.textContent = `Loaded: ${file.name}`;
+        showStatus('Garment image loaded successfully!');
+    };
+    reader.onerror = () => {
+        showStatus('Error reading garment file.', true);
+        garmentImageUrl = null;
+        garmentPreview.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Browse button triggers file input
+browseGarmentButton.addEventListener('click', () => {
+    garmentFileInput.click();
+});
+
+// Handle file selection from browse
+garmentFileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        handleGarmentFile(file);
+    }
+});
+
+// Drag and drop handlers
+garmentDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    garmentDropZone.classList.add('drag-over');
+});
+
+garmentDropZone.addEventListener('dragleave', () => {
+    garmentDropZone.classList.remove('drag-over');
+});
+
+garmentDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    garmentDropZone.classList.remove('drag-over');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+        handleGarmentFile(files[0]);
+    } else {
+        showStatus('Please drop a valid image file.', true);
+    }
+});
+
+// R2: Garment Acquisition - Auto-capture from page (fallback option)
 captureGarmentButton.addEventListener('click', async () => {
     showStatus('Attempting to capture garment image...', false);
     garmentImageUrl = null;
@@ -55,13 +111,13 @@ captureGarmentButton.addEventListener('click', async () => {
     garmentURLDisplay.textContent = '';
 
     try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
         if (!tab || !tab.id) {
             showStatus('Could not get active tab information.', true);
             return;
         }
 
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'getGarmentImage' });
+        const response = await browser.tabs.sendMessage(tab.id, { action: 'getGarmentImage' });
         
         if (response && response.garmentImageUrl) {
             garmentImageUrl = response.garmentImageUrl;
@@ -97,7 +153,7 @@ generateImageButton.addEventListener('click', async () => {
     const selectedMode = document.querySelector('input[name="tryOnMode"]:checked').value; // R3: Mode Selection
 
     try {
-        const response = await chrome.runtime.sendMessage({
+        const response = await browser.runtime.sendMessage({
             action: 'generateImage',
             selfie: selfieBase64,
             garment: garmentImageUrl,
@@ -122,7 +178,7 @@ generateImageButton.addEventListener('click', async () => {
 });
 
 // Listen for messages from the service worker (e.g., AI results)
-chrome.runtime.onMessage.addListener((message) => {
+browser.runtime.onMessage.addListener((message) => {
     if (message.action === 'displayGeneratedImage' && message.generatedImageUrl) {
         resultImage.src = message.generatedImageUrl;
         resultImage.style.display = 'block';

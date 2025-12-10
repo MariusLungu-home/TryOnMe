@@ -27,9 +27,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content-script.js"]
+      "js": ["browser-polyfill.min.js", "content-script.js"]
     }
   ],
+  "web_accessible_resources": [{
+    "resources": ["browser-polyfill.min.js"],
+    "matches": ["<all_urls>"]
+  }],
   "side_panel": {
     "default_path": "sidepanel.html"
   },

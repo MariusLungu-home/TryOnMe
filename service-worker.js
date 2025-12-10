@@ -1,10 +1,11 @@
 // service-worker.js
+importScripts('browser-polyfill.min.js');
 
 // --- Offscreen Document Management ---
 let creating; // A promise that resolves when the offscreen document is created
 
 async function hasOffscreenDocument(path) {
-    const offscreenUrl = chrome.runtime.getURL(path);
+    const offscreenUrl = browser.runtime.getURL(path);
     const matchedClients = await clients.matchAll();
     return matchedClients.some(client => client.url === offscreenUrl);
 }
@@ -14,9 +15,9 @@ async function setupOffscreenDocument(path) {
     if (creating) {
         await creating;
     } else if (!(await hasOffscreenDocument(path))) {
-        creating = chrome.offscreen.createDocument({
+        creating = browser.offscreen.createDocument({
             url: path,
-            reasons: [chrome.offscreen.Reason.BLOBS],
+            reasons: [browser.offscreen.Reason.BLOBS],
             justification: 'To convert an image URL to a base64 string.'
         });
         await creating;
@@ -26,20 +27,20 @@ async function setupOffscreenDocument(path) {
 
 // --- Main Service Worker Logic ---
 
-chrome.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener(() => {
     console.log("TryOnMe extension installed.");
 });
 
 // Allow users to open the side panel by clicking the action icon
-chrome.action.onClicked.addListener((tab) => {
-    chrome.sidePanel.open({ windowId: tab.windowId });
+browser.action.onClicked.addListener((tab) => {
+    browser.sidePanel.open({ windowId: tab.windowId });
 });
 
 
 // New helper function to convert URL to Base64 via offscreen document
 async function urlToBase64(url) {
     await setupOffscreenDocument('offscreen.html');
-    const response = await chrome.runtime.sendMessage({
+    const response = await browser.runtime.sendMessage({
         action: 'urlToBase64',
         url: url
     });
@@ -64,14 +65,14 @@ const toInlineData = (base64Data) => {
 };
 
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'generateImage') {
         (async () => {
             try {
                 const { selfie, garment: garmentUrl, mode } = request;
 
                 // 1. Get API Key from storage
-                const storage = await chrome.storage.local.get(['geminiApiKey']);
+                const storage = await browser.storage.local.get(['geminiApiKey']);
                 const API_KEY = storage.geminiApiKey;
                 const API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent";
 
@@ -79,8 +80,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     throw new Error("Gemini API Key not set. Please set it in the extension options.");
                 }
                 
-                // 2. Convert garment URL to Base64
-                const garmentBase64 = await urlToBase64(garmentUrl);
+                // 2. Convert garment URL to Base64 (or use directly if already base64)
+                let garmentBase64;
+                if (garmentUrl.startsWith('data:image/')) {
+                    // Already base64 data URL, use directly
+                    garmentBase64 = garmentUrl;
+                } else {
+                    // URL, needs conversion via offscreen document
+                    garmentBase64 = await urlToBase64(garmentUrl);
+                }
 
                 // 3. Construct prompt based on mode
                 let promptText = "";
@@ -110,12 +118,12 @@ Maintain realism over stylization.`;
                 
                 const contents = [
                     { parts: [
-                        { text: "Here is the garment image:" },
-                        toInlineData(garmentBase64)
+                        { text: "Here is Image A (the selfie):" },
+                        toInlineData(selfie)
                     ]},
                     { parts: [
-                        { text: "And here is the selfie image:" },
-                        toInlineData(selfie)
+                        { text: "Here is Image B (the model wearing designer clothing):" },
+                        toInlineData(garmentBase64)
                     ]},
                     { parts: [
                         { text: promptText }
@@ -135,13 +143,28 @@ Maintain realism over stylization.`;
                 }
 
                 const responseData = await response.json();
-                
+
+                // Add detailed logging to help debug API responses
+                console.log("Gemini API Response:", JSON.stringify(responseData, null, 2));
+
                 let generatedImageUrl;
-                if (responseData.candidates && responseData.candidates[0].content.parts[0].inlineData) {
+                if (responseData.candidates &&
+                    responseData.candidates.length > 0 &&
+                    responseData.candidates[0].content &&
+                    responseData.candidates[0].content.parts &&
+                    responseData.candidates[0].content.parts.length > 0 &&
+                    responseData.candidates[0].content.parts[0].inlineData) {
                     const inlineData = responseData.candidates[0].content.parts[0].inlineData;
                     generatedImageUrl = `data:${inlineData.mimeType};base64,${inlineData.data}`;
                 } else {
-                    throw new Error("Could not parse generated image from Gemini API response.");
+                    // Provide more detailed error message about what's missing
+                    const errorDetails = !responseData.candidates ? "No candidates in response" :
+                                        responseData.candidates.length === 0 ? "Empty candidates array" :
+                                        !responseData.candidates[0].content ? "No content in candidate" :
+                                        !responseData.candidates[0].content.parts ? "No parts in content" :
+                                        responseData.candidates[0].content.parts.length === 0 ? "Empty parts array" :
+                                        "No inlineData in parts";
+                    throw new Error(`Could not parse generated image from Gemini API response. ${errorDetails}. Full response: ${JSON.stringify(responseData)}`);
                 }
                 
                 sendResponse({ generatedImageUrl: generatedImageUrl });

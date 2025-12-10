@@ -1,6 +1,6 @@
 // offscreen.js
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'urlToBase64') {
         urlToBase64(request.url)
             .then(base64 => sendResponse({ base64: base64 }))

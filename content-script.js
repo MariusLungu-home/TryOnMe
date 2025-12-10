@@ -1,7 +1,7 @@
 // content-script.js
 
 // Listen for messages from the service worker
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'getGarmentImage') {
         console.log("Content script received request to get garment image.");
         let garmentImageUrl = null;

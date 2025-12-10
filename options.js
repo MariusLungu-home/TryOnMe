@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
 
     // Load saved API key
-    chrome.storage.local.get(['geminiApiKey'], (result) => {
+    browser.storage.local.get(['geminiApiKey']).then((result) => {
         if (result.geminiApiKey) {
             apiKeyInput.value = result.geminiApiKey;
             showStatus('API Key loaded.', 'success');
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveButton.addEventListener('click', () => {
         const apiKey = apiKeyInput.value.trim();
         if (apiKey) {
-            chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
+            browser.storage.local.set({ geminiApiKey: apiKey }).then(() => {
                 showStatus('API Key saved successfully!', 'success');
             });
         } else {
